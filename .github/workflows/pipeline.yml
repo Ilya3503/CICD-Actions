@@ -53,6 +53,7 @@ jobs:
         with:
           host: 192.168.136.11
           username: iadmin
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /opt/devops-demo
             docker pull ghcr.io/${{ github.repository }}/backend:latest
