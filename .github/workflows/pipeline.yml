@@ -10,33 +10,35 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: read
-      packages: write
     outputs:
-      image-backend: ghcr.io/${{ github.repository }}/backend:latest
-      image-frontend: ghcr.io/${{ github.repository }}/frontend:latest
+      image-backend: 192.168.136.12:5000/devops-cicd-demo/backend:latest
+      image-frontend: 192.168.136.12:5000/devops-cicd-demo/frontend:latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set lowercase repo name
-        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
-
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "REPO=devops-cicd-demo" >> $GITHUB_ENV
 
       - name: Build backend image
         run: |
-          docker build -t ghcr.io/$REPO/backend:latest ./backend
+          docker build -t 192.168.136.12:5000/$REPO/backend:latest ./backend
 
       - name: Build frontend image
         run: |
-          docker build -t ghcr.io/$REPO/frontend:latest ./frontend
+          docker build -t 192.168.136.12:5000/$REPO/frontend:latest ./frontend
 
       - name: Push backend image
-        run: docker push ghcr.io/$REPO/backend:latest
+        run: docker push 192.168.136.12:5000/$REPO/backend:latest
 
       - name: Push frontend image
-        run: docker push ghcr.io/$REPO/frontend:latest
+        run: docker push 192.168.136.12:5000/$REPO/frontend:latest
+
+      - name: Cleanup old images in registry
+        run: |
+          cd /opt
+          bash ./scripts/cleanup_registry.sh
+          docker exec local-registry registry garbage-collect /etc/docker/registry/config.yml
 
   deploy-prod:
     runs-on: self-hosted
@@ -57,12 +59,9 @@ jobs:
           script: |
             cd /opt/devops-demo/devops-cicd-demo
 
-            # Логинимся в GHCR для доступа к приватным образам
-            echo "${{ secrets.PROD_GHCR_TOKEN }}" | docker login ghcr.io -u Ilya3503 --password-stdin
-
-            # Pull последних образов
-            docker pull ghcr.io/ilya3503/devops-cicd-demo/backend:latest
-            docker pull ghcr.io/ilya3503/devops-cicd-demo/frontend:latest
+            # Pull последних образов из локального registry
+            docker pull 192.168.136.12:5000/devops-cicd-demo/backend:latest
+            docker pull 192.168.136.12:5000/devops-cicd-demo/frontend:latest
 
             # Запуск prod контейнеров
             docker compose -f deploy/docker-compose.prod.yml up -d
