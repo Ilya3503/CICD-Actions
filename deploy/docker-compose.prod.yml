@@ -3,14 +3,14 @@ version: "3"
 services:
 
   backend:
-    image: ghcr.io/USERNAME/backend:latest
+    image: ghcr.io/Ilya3503/devops-cicd-demo/backend:latest
     ports:
       - "8000:8000"
     environment:
       ENVIRONMENT: production
 
   frontend:
-    image: ghcr.io/USERNAME/frontend:latest
+    image: ghcr.io/Ilya3503/devops-cicd-demo/frontend:latest
     ports:
       - "80:80"
 
