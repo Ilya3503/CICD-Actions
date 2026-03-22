@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+
+  backend:
+    image: ghcr.io/USERNAME/backend:latest
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: production
+
+  frontend:
+    image: ghcr.io/USERNAME/frontend:latest
+    ports:
+      - "80:80"
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: strongpassword
