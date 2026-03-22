@@ -7,15 +7,14 @@ on:
 jobs:
 
   build-and-push:
-
     runs-on: self-hosted
-
     permissions:
       contents: read
       packages: write
-
+    outputs:
+      image-backend: ghcr.io/${{ github.repository }}/backend:latest
+      image-frontend: ghcr.io/${{ github.repository }}/frontend:latest
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -34,9 +33,28 @@ jobs:
           docker build -t ghcr.io/$REPO/frontend:latest ./frontend
 
       - name: Push backend image
-        run: |
-          docker push ghcr.io/$REPO/backend:latest
+        run: docker push ghcr.io/$REPO/backend:latest
 
       - name: Push frontend image
-        run: |
-          docker push ghcr.io/$REPO/frontend:latest
+        run: docker push ghcr.io/$REPO/frontend:latest
+
+  deploy-prod:
+    runs-on: self-hosted
+    needs: build-and-push
+    environment:
+      name: prod
+      url: http://192.168.136.11
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to prod server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 192.168.136.11
+          username: iadmin
+          script: |
+            cd /opt/devops-demo
+            docker pull ghcr.io/${{ github.repository }}/backend:latest
+            docker pull ghcr.io/${{ github.repository }}/frontend:latest
+            docker-compose -f docker-compose.prod.yml up -d
