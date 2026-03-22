@@ -55,7 +55,7 @@ jobs:
           username: iadmin
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/devops-demo
+            cd /opt/devops-demo/devops-cicd-demo
             git pull origin main
             docker pull ghcr.io/ilya3503/devops-cicd-demo/backend:latest
             docker pull ghcr.io/ilya3503/devops-cicd-demo/frontend:latest
