@@ -24,7 +24,7 @@ jobs:
 
       - name: Build backend image
         run: |
-          docker build -t --no-cache 192.168.136.12:5000/$REPO/backend:latest ./backend
+          docker build -t 192.168.136.12:5000/$REPO/backend:latest ./backend
 
       - name: Build frontend image
         run: |
