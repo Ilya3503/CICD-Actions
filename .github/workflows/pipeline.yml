@@ -56,6 +56,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /opt/devops-demo
-            docker pull ghcr.io/${{ github.repository }}/backend:latest
-            docker pull ghcr.io/${{ github.repository }}/frontend:latest
-            docker compose -f docker-compose.prod.yml up -d
+            git pull origin main
+            docker pull ghcr.io/ilya3503/devops-cicd-demo/backend:latest
+            docker pull ghcr.io/ilya3503/devops-cicd-demo/frontend:latest
+            docker compose -f deploy/docker-compose.prod.yml up -d
