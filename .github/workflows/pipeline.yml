@@ -58,4 +58,4 @@ jobs:
             cd /opt/devops-demo
             docker pull ghcr.io/${{ github.repository }}/backend:latest
             docker pull ghcr.io/${{ github.repository }}/frontend:latest
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d
