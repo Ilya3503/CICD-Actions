@@ -56,7 +56,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /opt/devops-demo/devops-cicd-demo
-            git pull origin main
+
+            # Логинимся в GHCR для доступа к приватным образам
+            echo "${{ secrets.PROD_GHCR_TOKEN }}" | docker login ghcr.io -u Ilya3503 --password-stdin
+
+            # Pull последних образов
             docker pull ghcr.io/ilya3503/devops-cicd-demo/backend:latest
             docker pull ghcr.io/ilya3503/devops-cicd-demo/frontend:latest
+
+            # Запуск prod контейнеров
             docker compose -f deploy/docker-compose.prod.yml up -d
