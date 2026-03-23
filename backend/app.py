@@ -23,6 +23,7 @@ async def metrics_middleware(request: Request, call_next):
     REQUEST_COUNT.labels(method=request.method, endpoint=request.url.path).inc()
     REQUEST_LATENCY.labels(endpoint=request.url.path).observe(process_time)
 
+
     return response
 
 # Метрики endpoint
