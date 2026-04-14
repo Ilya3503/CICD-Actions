@@ -1,41 +1,43 @@
-name: CI-CD
-
-on:
-  push:
-    branches: [ main ]
-
 jobs:
-
   build-and-push:
     runs-on: self-hosted
-    permissions:
-      contents: read
 
     outputs:
-      image-backend: 192.168.136.12:5000/devops-cicd-demo/backend:latest
-      image-frontend: 192.168.136.12:5000/devops-cicd-demo/frontend:latest
+      image-backend: 192.168.136.12:5000/devops-cicd-demo/backend:${{ github.sha }}
+      image-frontend: 192.168.136.12:5000/devops-cicd-demo/frontend:${{ github.sha }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set repo name
-        run: echo "REPO=devops-cicd-demo" >> $GITHUB_ENV
+      - name: Set image tags
+        run: |
+          echo "REPO=devops-cicd-demo" >> $GITHUB_ENV
+          echo "TAG=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Build backend image
         run: |
-          docker build --no-cache -t 192.168.136.12:5000/$REPO/backend:latest ./backend
+          docker build --no-cache \
+            -t 192.168.136.12:5000/$REPO/backend:$TAG \
+            -t 192.168.136.12:5000/$REPO/backend:latest \
+            ./backend
 
       - name: Build frontend image
         run: |
-          docker build -t 192.168.136.12:5000/$REPO/frontend:latest ./frontend
+          docker build \
+            -t 192.168.136.12:5000/$REPO/frontend:$TAG \
+            -t 192.168.136.12:5000/$REPO/frontend:latest \
+            ./frontend
 
       - name: Push backend image
-        run: docker push 192.168.136.12:5000/$REPO/backend:latest
+        run: |
+          docker push 192.168.136.12:5000/$REPO/backend:$TAG
+          docker push 192.168.136.12:5000/$REPO/backend:latest
 
       - name: Push frontend image
-        run: docker push 192.168.136.12:5000/$REPO/frontend:latest
-
+        run: |
+          docker push 192.168.136.12:5000/$REPO/frontend:$TAG
+          docker push 192.168.136.12:5000/$REPO/frontend:latest
 
   deploy-prod:
     runs-on: self-hosted
@@ -46,19 +48,15 @@ jobs:
       url: http://192.168.136.11
 
     steps:
-
       - name: Deploy to prod server
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: 192.168.136.11
           username: iadmin
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-
           script: |
             cd /opt/devops-demo/devops-cicd-demo
-
-            docker pull 192.168.136.12:5000/devops-cicd-demo/backend:latest
-            docker pull 192.168.136.12:5000/devops-cicd-demo/frontend:latest
-
-            docker compose -f deploy/docker-compose.prod.yml pull
+            export IMAGE_TAG=${{ github.sha }}
+            docker pull 192.168.136.12:5000/devops-cicd-demo/backend:$IMAGE_TAG
+            docker pull 192.168.136.12:5000/devops-cicd-demo/frontend:$IMAGE_TAG
             docker compose -f deploy/docker-compose.prod.yml up -d --force-recreate
